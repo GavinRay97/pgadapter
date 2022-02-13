@@ -33,7 +33,7 @@ import org.json.simple.JSONObject;
 public class OptionsMetadata {
 
   private static final Logger logger = Logger.getLogger(OptionsMetadata.class.getName());
-  private static final String DEFAULT_SERVER_VERSION = "1.0.0";
+  private static final String DEFAULT_SERVER_VERSION = "13.0.0";
 
   private static final String OPTION_SERVER_PORT = "s";
   private static final String OPTION_PROJECT_ID = "p";

@@ -57,13 +57,15 @@ public class StatementParser {
     boolean isInSingleLineComment = false;
     int multiLineCommentLevel = 0;
     char startQuote = 0;
+    // TODO: Correctly handle escape characters in escape string constant.
+    boolean isEscapeStringConstant = false;
     boolean lastCharWasEscapeChar = false;
     StringBuilder res = new StringBuilder(sql.length());
     int index = 0;
     while (index < sql.length()) {
       char c = sql.charAt(index);
       if (isInQuoted) {
-        if ((c == '\n' || c == '\r') && startQuote != DOLLAR) {
+        if ((c == '\n' || c == '\r') && startQuote != DOLLAR && !isEscapeStringConstant) {
           throw new IllegalArgumentException("SQL statement contains an unclosed literal: " + sql);
         } else if (c == startQuote) {
           if (c == DOLLAR) {
@@ -116,6 +118,7 @@ public class StatementParser {
             if (c == SINGLE_QUOTE || c == DOUBLE_QUOTE) {
               isInQuoted = true;
               startQuote = c;
+              isEscapeStringConstant = index > 0 && (sql.charAt(index - 1) == 'E' || sql.charAt(index - 1) == 'e');
             } else if (c == DOLLAR
                 && sql.length() > index + 1
                 && !Character.isDigit(sql.charAt(index + 1))) {
