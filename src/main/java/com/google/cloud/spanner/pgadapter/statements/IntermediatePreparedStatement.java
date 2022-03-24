@@ -128,11 +128,17 @@ public class IntermediatePreparedStatement extends IntermediateStatement {
 
   /**
    * Returns the parameter types in the SQL string of this statement. The current implementation
-   * always returns Oid.UNSPECIFIED for all parameters, as we have no way to actually determine the
-   * parameter types.
+   * always returns Oid.UNSPECIFIED for all parameters that were not already specified by the client
+   * in the parse message, as we have no way to actually determine the parameter types.
    */
   private int[] getParameterTypes() {
     Set<String> parameters = PARSER.getQueryParameters(this.sql);
-    return new int[parameters.size()];
+    int[] parameterTypes = new int[parameters.size()];
+    if (this.parameterDataTypes != null) {
+      for (int i = 0; i < parameterTypes.length && i < this.parameterDataTypes.size(); i++) {
+        parameterTypes[i] = this.parameterDataTypes.get(i);
+      }
+    }
+    return parameterTypes;
   }
 }

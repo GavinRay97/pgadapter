@@ -166,6 +166,14 @@ func TestInsertAllDataTypes(connString string) *C.char {
 	}
 	defer conn.Close(ctx)
 
+	// There is no data type registered by default for NUMERIC in pgx, as there is no native
+	// decimal/numeric data in Go. We therefore need to register the default that we want to use.
+	if dt, ok := conn.ConnInfo().DataTypeForOID(pgtype.NumericOID); ok {
+		conn.ConnInfo().RegisterDefaultPgType(pgtype.Numeric{}, dt.Name)
+	} else {
+		return C.CString("could not register default type for numeric")
+	}
+
 	sql := "INSERT INTO AllTypes (col_bigint, col_bool, col_bytea, col_float8, col_numeric, col_timestamp, col_varchar) values ($1, $2, $3, $4, $5, $6, $7)"
 	numeric := pgtype.Numeric{}
 	numeric.Scan("6.626")

@@ -161,15 +161,14 @@ public class PgxMockServerTest extends AbstractMockServerTest {
 
     assertNull(res);
     List<ExecuteSqlRequest> requests = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class);
-    // pgx sends the query three times:
-    // 1. DESCRIBE statement
-    // 2. DESCRIBE portal
-    // 3. EXECUTE portal
-    assertEquals(3, requests.size());
+    // The patched version of pgx sends the query two times:
+    // 1. DESCRIBE portal
+    // 2. EXECUTE portal
+    assertEquals(2, requests.size());
     int index = 0;
     for (ExecuteSqlRequest request : requests) {
       assertEquals(sql, request.getSql());
-      if (index < 2) {
+      if (index < 1) {
         assertEquals(QueryMode.PLAN, request.getQueryMode());
       } else {
         assertEquals(QueryMode.NORMAL, request.getQueryMode());
@@ -215,15 +214,14 @@ public class PgxMockServerTest extends AbstractMockServerTest {
 
     assertNull(res);
     List<ExecuteSqlRequest> requests = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class);
-    // pgx sends the query three times:
-    // 1. DESCRIBE statement
-    // 2. DESCRIBE portal
-    // 3. EXECUTE portal
-    assertEquals(3, requests.size());
+    // The patched pgx version sends the query two times:
+    // 1. DESCRIBE portal
+    // 2. EXECUTE portal
+    assertEquals(2, requests.size());
     int index = 0;
     for (ExecuteSqlRequest request : requests) {
       assertEquals(sql, request.getSql());
-      if (index < 2) {
+      if (index < 1) {
         assertEquals(QueryMode.PLAN, request.getQueryMode());
       } else {
         assertEquals(QueryMode.NORMAL, request.getQueryMode());
@@ -263,7 +261,6 @@ public class PgxMockServerTest extends AbstractMockServerTest {
     String sql = "INSERT INTO AllTypes "
         + "(col_bigint, col_bool, col_bytea, col_float8, col_numeric, col_timestamp, col_varchar) "
         + "values ($1, $2, $3, $4, $5, $6, $7)";
-    mockSpanner.putStatementResult(StatementResult.update(Statement.of(sql), 1L));
     mockSpanner.putStatementResult(StatementResult.update(
         Statement.newBuilder(sql)
             .bind("p1").to(100L)
@@ -271,7 +268,7 @@ public class PgxMockServerTest extends AbstractMockServerTest {
             .bind("p3").to(ByteArray.copyFrom("test_bytes"))
             .bind("p4").to(3.14d)
             .bind("p5").to(com.google.cloud.spanner.Value.pgNumeric("6.626"))
-            .bind("p6").to(Timestamp.parseTimestamp("2022-03-24T07:39:10.123456789+01:00"))
+            .bind("p6").to(Timestamp.parseTimestamp("2022-03-24T06:39:10.123456000Z"))
             .bind("p7").to("test_string")
             .build(),
         1L));
@@ -280,20 +277,9 @@ public class PgxMockServerTest extends AbstractMockServerTest {
 
     assertNull(res);
     List<ExecuteSqlRequest> requests = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class);
-    // pgx sends the query three times:
-    // 1. DESCRIBE statement
-    // 2. DESCRIBE portal
-    // 3. EXECUTE portal
-    assertEquals(3, requests.size());
-    int index = 0;
-    for (ExecuteSqlRequest request : requests) {
-      assertEquals(sql, request.getSql());
-      if (index < 2) {
-        assertEquals(QueryMode.PLAN, request.getQueryMode());
-      } else {
-        assertEquals(QueryMode.NORMAL, request.getQueryMode());
-      }
-      index++;
-    }
+    // The patched version of pgx sends the query only once!
+    assertEquals(1, requests.size());
+    ExecuteSqlRequest request = requests.get(0);
+    assertEquals(QueryMode.NORMAL, request.getQueryMode());
   }
 }
