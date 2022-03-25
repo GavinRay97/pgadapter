@@ -5,9 +5,6 @@ go 1.17
 require (
 	github.com/jackc/pgtype v1.10.0
 	github.com/jackc/pgx/v4 v4.15.0
-)
-
-require (
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.11.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -19,6 +16,6 @@ require (
 )
 
 replace (
-	github.com/jackc/pgconn => /home/loite/GolandProjects/pgconn
-	github.com/jackc/pgx/v4 => /home/loite/GolandProjects/pgx/
+	github.com/jackc/pgconn => /Users/loite/go/src/pgconn
+	github.com/jackc/pgx/v4 => /Users/loite/go/src/pgx/
 )

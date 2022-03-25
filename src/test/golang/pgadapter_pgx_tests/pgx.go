@@ -191,3 +191,27 @@ func TestInsertAllDataTypes(connString string) *C.char {
 
 	return nil
 }
+
+//export TestInsertNullsAllDataTypes
+func TestInsertNullsAllDataTypes(connString string) *C.char {
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, connString)
+	if err != nil {
+		return C.CString(err.Error())
+	}
+	defer conn.Close(ctx)
+
+	sql := "INSERT INTO AllTypes (col_bigint, col_bool, col_bytea, col_float8, col_numeric, col_timestamp, col_varchar) values ($1, $2, $3, $4, $5, $6, $7)"
+	tag, err := conn.Exec(ctx, sql, nil, nil, nil, nil, nil, nil, nil)
+	if err != nil {
+		return C.CString(fmt.Sprintf("failed to execute insert statement: %v", err))
+	}
+	if !tag.Insert() {
+		return C.CString("statement was not recognized as an insert")
+	}
+	if g, w := tag.RowsAffected(), int64(1); g != w {
+		return C.CString(fmt.Sprintf("rows affected mismatch:\n Got: %v\nWant: %v", g, w))
+	}
+
+	return nil
+}

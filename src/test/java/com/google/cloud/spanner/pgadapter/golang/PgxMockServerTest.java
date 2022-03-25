@@ -78,6 +78,8 @@ public class PgxMockServerTest extends AbstractMockServerTest {
     String TestQueryAllDataTypes(GoString connString);
 
     String TestInsertAllDataTypes(GoString connString);
+
+    String TestInsertNullsAllDataTypes(GoString connString);
   }
 
   private static PgxTest pgxTest;
@@ -274,6 +276,33 @@ public class PgxMockServerTest extends AbstractMockServerTest {
         1L));
 
     String res = pgxTest.TestInsertAllDataTypes(createConnString());
+
+    assertNull(res);
+    List<ExecuteSqlRequest> requests = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class);
+    // The patched version of pgx sends the query only once!
+    assertEquals(1, requests.size());
+    ExecuteSqlRequest request = requests.get(0);
+    assertEquals(QueryMode.NORMAL, request.getQueryMode());
+  }
+
+  @Test
+  public void testInsertNullsAllDataTypes() {
+    String sql = "INSERT INTO AllTypes "
+        + "(col_bigint, col_bool, col_bytea, col_float8, col_numeric, col_timestamp, col_varchar) "
+        + "values ($1, $2, $3, $4, $5, $6, $7)";
+    mockSpanner.putStatementResult(StatementResult.update(
+        Statement.newBuilder(sql)
+            .bind("p1").to((com.google.cloud.spanner.Value) null)
+            .bind("p2").to((com.google.cloud.spanner.Value) null)
+            .bind("p3").to((com.google.cloud.spanner.Value) null)
+            .bind("p4").to((com.google.cloud.spanner.Value) null)
+            .bind("p5").to((com.google.cloud.spanner.Value) null)
+            .bind("p6").to((com.google.cloud.spanner.Value) null)
+            .bind("p7").to((com.google.cloud.spanner.Value) null)
+            .build(),
+        1L));
+
+    String res = pgxTest.TestInsertNullsAllDataTypes(createConnString());
 
     assertNull(res);
     List<ExecuteSqlRequest> requests = mockSpanner.getRequestsOfType(ExecuteSqlRequest.class);
